@@ -14,6 +14,7 @@ def instantiate_db(sqlite_filename):
                 codename,
                 path_to_source_code,
                 path_to_executable,
+                executable_version,
                 executable_hash,
                 run_timestamp,
                 source_code_git_commit,
