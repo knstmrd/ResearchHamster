@@ -3,12 +3,14 @@
 # 
 import unittest
 from src.python.instantiate import instantiate_db
+from src.python.add_record import *
 import os
 import hashlib
 import uuid
 import sqlite3
 
 class TestInstantiation(unittest.TestCase):
+    # test creation of sqlite db
     def test_create(self):
         unique_id = uuid.uuid4()
         self.db_filename = str(unique_id)[:10] + ".sqlite"
@@ -19,6 +21,7 @@ class TestInstantiation(unittest.TestCase):
         os.remove(self.db_filename)
 
 class TestTable(unittest.TestCase):
+    # test creation of table with appropriate columns
     def setUp(self):
         unique_id = uuid.uuid4()
         self.db_filename = str(unique_id)[:10] + ".sqlite"
@@ -53,6 +56,30 @@ class TestTable(unittest.TestCase):
         
     def tearDown(self):
         os.remove(self.db_filename)
+
+class GetInfo(unittest.TestCase):
+    # get info about code, work with timestamps, etc
+    def test_datetime_manip(self):
+
+        with self.assertRaises(ValueError):
+            check_and_correct_timestamp("22_12")
+        
+        dt_corrected = check_and_correct_timestamp("22_12_4")
+        self.assertTrue(dt_corrected == "2022_12_04_00_00_00")
+        
+        dt_corrected = check_and_correct_timestamp("1992_12_4_17_44_23")
+        self.assertTrue(dt_corrected == "1992_12_04_17_44_23")
+        
+        with self.assertRaises(ValueError):
+            check_and_correct_timestamp("1992_12_4_37_44_23")
+        with self.assertRaises(ValueError):
+            check_and_correct_timestamp("1992_12_74_17_44_23")
+        with self.assertRaises(ValueError):
+            check_and_correct_timestamp("1992_22_4_07_44_23")
+        with self.assertRaises(ValueError):
+            check_and_correct_timestamp("1992_12_4_07_94_23")
+        with self.assertRaises(ValueError):
+            check_and_correct_timestamp("1992_12_4_07_14_93")
 
 if __name__ == '__main__':
     unittest.main()
