@@ -8,25 +8,9 @@ import hashlib
 import json
 
 def add_record(cur,
-               project_name,
-               codename,
-               path_to_source_code,
-               path_to_executable,
-               executable_version,
-               executable_hash,
-               run_timestamp, # yyyy_mm_dd_hh_mm_ss
-               source_code_git_commit,
-               path_to_input_file,
-               input_file_hash,
-               output_path_prefix,
-               output_files,
-               vis_output_prefix,
-               vis_files,
-               info,
-               backup_paths,
-               json_info):
+               *args):
     # this already assumes fully cleaned and corrected input
-    pass
+    cur.execute(f"INSERT INTO simdata VALUES {args}")
 
 def convert_to_list(comma_separated_string):
     if comma_separated_string == "":
@@ -53,7 +37,12 @@ def get_missing_and_add_record(cur,
     executable_hash = get_file_hash(path_to_executable)
     run_timestamp = check_and_correct_timestamp(run_timestamp)
     source_code_git_commit = get_source_code_git_commit(path_to_source_code)
-    input_file_hash = get_file_hash(path_to_input_file)
+
+    if path_to_input_file != "":
+        input_file_hash = get_file_hash(path_to_input_file)
+    else:
+        input_file_hash = "N/A"
+        path_to_input_file = "N/A"
 
     # create empty lists, json dumps
     output_files = json.dumps(output_files)
@@ -101,11 +90,12 @@ def check_and_correct_timestamp(run_timestamp):
 
 def get_executable_version(path_to_executable):
     version = subprocess.run([path_to_executable, "--version"], capture_output=True)
-
+    
     if version.returncode != 0:
         return "N/A"
     else:
         version = version.stdout.decode("UTF-8")
+        version = version.strip()
         if len(version) > 500:
             version = version[:500]  # in case some code produces nasty output
         return version
@@ -115,7 +105,7 @@ def get_file_hash(path_to_file):
         return hashlib.file_digest(f, 'sha1').hexdigest()
 
 def get_source_code_git_commit(path_to_source_code):
-    commit_hash = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True)
+    commit_hash = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, cwd=path_to_source_code)
 
     if commit_hash.returncode != 0:
         return "N/A"
@@ -124,7 +114,7 @@ def get_source_code_git_commit(path_to_source_code):
     if commit_hash.endswith("\n"):
         commit_hash = commit_hash[:-1]
 
-    uncommited_files = subprocess.run(["git", "ls-files", "-m"], capture_output=True)
+    uncommited_files = subprocess.run(["git", "ls-files", "-m"], capture_output=True, cwd=path_to_source_code)
     fileslist = uncommited_files.stdout.decode("UTF-8").split("\n")
     fileslist = [x for x in fileslist if x != ""]
 
@@ -156,7 +146,7 @@ if __name__ == "__main__":
     parser.add_argument("--info", help="Any additional info", required=True)
     parser.add_argument("--backup_paths", help="Paths to backups (if any), comma-separated", required=False, default="")
     parser.add_argument("--json_info", help="Any additional info in JSON format", required=False, default="")
-    
+
     args = parser.parse_args()
 
     con = sqlite3.connect(args.dbfilename)
