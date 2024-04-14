@@ -83,8 +83,9 @@ def get_missing_and_add_record(cur,
                json_info)
 
 def check_and_correct_timestamp(run_timestamp):
+    # yy_mm_dd
     tsp = run_timestamp.split("_")
-    if len(tsp) != 3 or len(tsp) != 6:
+    if len(tsp) != 3 and len(tsp) != 6:
         raise ValueError(f"Incorrect format of timestamp {run_timestamp}")
     
     if len(tsp[0]) == 2:
@@ -92,8 +93,9 @@ def check_and_correct_timestamp(run_timestamp):
     else:
         yearcorr = 0
 
-    d = datetime.date(yearcorr + int(tsp[0]), tsp[1], tsp[2])
-    t = datetime.time(*tsp[2:])
+    tsp = [int(x) for x in tsp]
+    d = datetime.date(yearcorr + tsp[0], tsp[1], tsp[2])
+    t = datetime.time(*tsp[3:])
     dt = datetime.datetime.combine(d, t)
     return str(dt).replace("-", "_").replace(" ", "_").replace(":", "_")
 
