@@ -65,10 +65,10 @@ class GetInfo(unittest.TestCase):
             check_and_correct_timestamp("22_12")
         
         dt_corrected = check_and_correct_timestamp("22_12_4")
-        self.assertTrue(dt_corrected == "2022_12_04_00_00_00")
+        self.assertEqual(dt_corrected, "2022_12_04_00_00_00")
         
         dt_corrected = check_and_correct_timestamp("1992_12_4_17_44_23")
-        self.assertTrue(dt_corrected == "1992_12_04_17_44_23")
+        self.assertEqual(dt_corrected, "1992_12_04_17_44_23")
         
         with self.assertRaises(ValueError):
             check_and_correct_timestamp("1992_12_4_37_44_23")
@@ -80,6 +80,13 @@ class GetInfo(unittest.TestCase):
             check_and_correct_timestamp("1992_12_4_07_94_23")
         with self.assertRaises(ValueError):
             check_and_correct_timestamp("1992_12_4_07_14_93")
+
+    def test_exec_version(self):
+        execv = get_executable_version("head")
+        self.assertEqual(execv, "N/A")
+        
+        execv = get_executable_version("git")
+        self.assertTrue(execv.startswith("git version"))
 
 if __name__ == '__main__':
     unittest.main()
